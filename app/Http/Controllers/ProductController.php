@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Product;
-use PhpParser\Builder\Function;
+//use App\Models\Product;
+//use PhpParser\Builder\Function;
 
 class ProductController extends Controller
 {
@@ -29,14 +29,35 @@ class ProductController extends Controller
 
      return view('pages.products.create');
     }
+
+
+
+
     public function store(Request $request)
     {
 
-        //dd($request->all());
+         //dd($request->all());
+         $request->validate([
+            'name' => 'required|min:3|unique:products',
+            'price' => 'required|integer',
+            'stock' => 'required|integer',
+            'category' => 'required|in:food,drink,snack',
+            'image' => 'required|image|mimes:png,jpg,jpeg'
+        ]);
+        $filename = time() . '.' . $request->image->extension();
+        $request->image->storeAs('public/storage/products', $filename);
         $data = $request->all();
-        //$data['password'] = Hash::make($request->password);
-        \App\models\Product::create($data);
-        return redirect()->route('products.index')->with('success', 'Product Success');
+
+        $product = new \App\Models\Product;
+        $product->name = $request->name;
+        $product->description = $request->description;
+        $product->price = (int) $request->price;
+        $product->stock = (int) $request->stock;
+        $product->category = $request->category;
+        $product->image = $filename;
+        $product->save();
+
+            return redirect()->route('products.index')->with('success', 'Product Success');
     }
     public function edit($id)
     {
